@@ -1,9 +1,5 @@
 import numpy as np
-from scipy.stats import norm
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 def simulate_gbm(
@@ -98,75 +94,11 @@ def evaluate_hedge(
         "net_pnl": net_pnl,
     }
 
-validation_paths_np = simulate_gbm(
-    n_paths=10_000,
-    n_steps=30,
-    s0=1.0,
-    sigma=0.2,
-    T=30 / 365,
-    mu=0.0,
-)
+def report_results(name, results):
+    pnl = results["net_pnl"]
 
-validation_paths = torch.tensor(
-    validation_paths_np,
-    dtype=torch.float32,
-)
-
-# Baseline: ordinary Black-Scholes delta hedging.
-bs_positions_np = black_scholes_hedge(validation_paths_np)
-
-bs_positions = torch.tensor(
-    bs_positions_np,
-    dtype=torch.float32,
-)
-with torch.no_grad():
-    standard_positions = standard_deep_hedge(
-        model=model,
-        paths=validation_paths,
-        strike=1.0,
-        sigma=0.2,
-        T=30 / 365,
-    )
-
-    band_positions = no_transaction_band_hedge(
-        model=band_model,
-        paths=validation_paths,
-        strike=1.0,
-        sigma=0.2,
-        T=30 / 365,
-    )
-
-bs_results = evaluate_hedge(
-    paths=validation_paths,
-    hedge_positions=bs_positions,
-    strike=1.0,
-    transaction_cost_rate=0.001,
-)
-
-standard_results = evaluate_hedge(
-    validation_paths,
-    standard_positions,
-    strike=1.0,
-    transaction_cost_rate=0.001,
-)
-
-band_results = evaluate_hedge(
-    validation_paths,
-    band_positions,
-    strike=1.0,
-    transaction_cost_rate=0.001,
-)
-# Strategy that never trades or holds any shares.
-no_hedge_positions = torch.zeros_like(bs_positions)
-
-no_hedge_results = evaluate_hedge(
-    paths=validation_paths,
-    hedge_positions=no_hedge_positions,
-    strike=1.0,
-    transaction_cost_rate=0.001,
-)
-
-report_results("Never hedge", no_hedge_results)
-report_results("Black-Scholes", bs_results)
-report_results("Standard Deep Hedging NN", standard_results)
-report_results("No-Transaction Band NN", band_results)
+    print(f"\n{name}")
+    print(f"Exponential loss: {torch.exp(-pnl).mean().item():.6f}")
+    print(f"Mean P&L:         {pnl.mean().item():.6f}")
+    print(f"Mean transaction costs: "
+          f"{results['transaction_costs'].mean().item():.6f}")

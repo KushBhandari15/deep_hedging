@@ -1,10 +1,9 @@
 import numpy as np
-from scipy.stats import norm
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import utils as helper
 
 class StandardDeepHedgingNN(nn.Module):
 
@@ -58,7 +57,7 @@ def standard_deep_hedge(
 
         S = paths[:, step]
         tau = T - step * dt
-        bs_delta = black_scholes_delta_torch(
+        bs_delta = helper.black_scholes_delta_torch(
             S, strike, tau, sigma, r
         )
 
@@ -95,7 +94,7 @@ def train_standard_hedge_model(n_paths = 10000,
 
     for epoch in range(epochs):
 
-        paths_np = simulate_gbm(
+        paths_np = helper.simulate_gbm(
             n_paths=n_paths,
             n_steps=30,
             s0=strike,
@@ -107,7 +106,7 @@ def train_standard_hedge_model(n_paths = 10000,
 
         hedge_positions = standard_deep_hedge(model=model, paths=paths, strike=strike, sigma=sigma, T=T)
 
-        performance = evaluate_hedge(paths, hedge_positions, strike, transaction_cost_rate)
+        performance = helper.evaluate_hedge(paths, hedge_positions, strike, transaction_cost_rate)
 
         net_pnl = performance["net_pnl"]
 

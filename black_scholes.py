@@ -1,10 +1,5 @@
 import numpy as np
 from scipy.stats import norm
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import matplotlib.pyplot as plt
 
 def black_scholes_call_delta(S, K, tau, sigma, r=0.0):
 

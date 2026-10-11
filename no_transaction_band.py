@@ -1,10 +1,10 @@
 import numpy as np
-from scipy.stats import norm
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import utils as helper
 
 class NoTransactionBandNN(nn.Module):
 
@@ -62,7 +62,7 @@ def no_transaction_band_hedge(
 
         S = paths[:, step]
         tau = T - step * dt
-        bs_delta = black_scholes_delta_torch(
+        bs_delta = helper.black_scholes_delta_torch(
             S, strike, tau, sigma, r
         )
 
@@ -103,7 +103,7 @@ def train_no_transaction_band_model(
     for epoch in range(epochs):
 
         # 1. Generate fresh simulated stock-price paths.
-        paths_np = simulate_gbm(
+        paths_np = helper.simulate_gbm(
             n_paths=n_paths,
             n_steps=30,
             s0=1.0,
@@ -127,7 +127,7 @@ def train_no_transaction_band_model(
         )
 
         # 3. Evaluate gains, trading costs and option liability.
-        performance = evaluate_hedge(
+        performance = helper.evaluate_hedge(
             paths=paths,
             hedge_positions=hedge_positions,
             strike=strike,
@@ -178,7 +178,7 @@ features = torch.stack(
 )
 
 with torch.no_grad():
-    bs_delta = black_scholes_delta_torch(
+    bs_delta = helper.black_scholes_delta_torch(
         S, 1.0, 15 / 365, 0.2
     )
 
