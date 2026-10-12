@@ -126,30 +126,31 @@ def train_standard_hedge_model(n_paths = 10000,
 
     return model, loss_history
 
-model, loss_history = train_standard_hedge_model()
-window = 10
+if __name__ == "__main__":
+    model, loss_history = train_standard_hedge_model()
+    window = 10
 
-smoothed_loss = np.convolve(
+    smoothed_loss = np.convolve(
     loss_history,
     np.ones(window) / window,
     mode="valid",
 )
 
-plt.plot(
+    plt.plot(
     range(1, len(loss_history) + 1),
     loss_history,
     alpha=0.3,
     label="Loss per epoch",
 )
 
-plt.plot(
+    plt.plot(
     range(window, len(loss_history) + 1),
     smoothed_loss,
     label="10-epoch moving average",
 )
 
-plt.xlabel("Epoch")
-plt.ylabel("Exponential utility loss")
-plt.title("Standard Deep Hedging Training")
-plt.legend()
-plt.show()
+    plt.xlabel("Epoch")
+    plt.ylabel("Exponential utility loss")
+    plt.title("Standard Deep Hedging Training")
+    plt.legend()
+    plt.show()

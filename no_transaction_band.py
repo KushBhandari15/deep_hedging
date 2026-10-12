@@ -154,57 +154,56 @@ def train_no_transaction_band_model(
 
     return model, loss_history
 
-band_model, band_loss_history = (
-    train_no_transaction_band_model()
-)
+if __name__ == "__main__":
+    band_model, band_loss_history = train_no_transaction_band_model()
 
-plt.plot(band_loss_history)
-plt.xlabel("Epoch")
-plt.ylabel("Exponential utility loss")
-plt.title("No-Transaction Band Network")
-plt.show()
+    plt.plot(band_loss_history)
+    plt.xlabel("Epoch")
+    plt.ylabel("Exponential utility loss")
+    plt.title("No-Transaction Band Network")
+    plt.show()
 
-band_model.eval()
+    band_model.eval()
 
-log_moneyness = torch.linspace(-0.15, 0.15, 300)
-S = torch.exp(log_moneyness)
+    log_moneyness = torch.linspace(-0.15, 0.15, 300)
+    S = torch.exp(log_moneyness)
 
-tau = torch.full_like(S, 15 / 365)
-sigma_values = torch.full_like(S, 0.2)
+    tau = torch.full_like(S, 15 / 365)
+    sigma_values = torch.full_like(S, 0.2)
 
-features = torch.stack(
+    features = torch.stack(
     [log_moneyness, tau, sigma_values],
     dim=1,
 )
 
-with torch.no_grad():
-    bs_delta = helper.black_scholes_delta_torch(
+    with torch.no_grad():
+        bs_delta = helper.black_scholes_delta_torch(
         S, 1.0, 15 / 365, 0.2
     )
 
-    lower_band, upper_band = band_model(
+        lower_band, upper_band = band_model(
         features, bs_delta
     )
 
-plt.plot(
+    plt.plot(
     log_moneyness.numpy(),
     bs_delta.numpy(),
     label="Black-Scholes delta",
 )
-plt.plot(
+    plt.plot(
     log_moneyness.numpy(),
     lower_band.numpy(),
     label="Lower band",
 )
-plt.plot(
+    plt.plot(
     log_moneyness.numpy(),
     upper_band.numpy(),
     label="Upper band",
 )
 
-plt.xlabel("Log-moneyness: log(S/K)")
-plt.ylabel("Hedge ratio")
-plt.title("Learned No-Transaction Band")
-plt.legend()
-plt.grid(True)
-plt.show()
+    plt.xlabel("Log-moneyness: log(S/K)")
+    plt.ylabel("Hedge ratio")
+    plt.title("Learned No-Transaction Band")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
